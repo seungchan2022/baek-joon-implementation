@@ -31,18 +31,19 @@ def find_land(visited, a, b, num):
                 q.append((nx, ny))
 
 
-def find_parent(x):
-    if x != island[x]:
-        island[x] = find_parent(island[x])
-    return island[x]
+def find_parent(parent, x):
+    if parent[x] != x:
+        parent[x] = find_parent(parent, parent[x])
+    return parent[x]
 
 
-def union_parent(x, y):
-    a, b = find_parent(x), find_parent(y)
-    if a > b:
-        island[a] = b
+def union_parent(parent, a, b):
+    a = find_parent(parent, a)
+    b = find_parent(parent, b)
     if a < b:
-        island[b] = a
+        parent[b] = a
+    else:
+        parent[a] = b
 
 # 바다이면 temp에 다리의 길이를 넣어주고 dfs, 땅이고 길이가 2이상이면 bridge에 append
 def make_straight(nx, ny, dx, dy, num, temp):
@@ -68,8 +69,8 @@ def check_all_connected():
     temp = 0
     for i in range(1, num_island+1):
         if i == 1:
-            temp = find_parent(i)
-        elif temp != find_parent(i):
+            temp = find_parent(parent, i)
+        elif temp != find_parent(parent, i):
             return False
     return True
 
@@ -88,7 +89,7 @@ num_island -= 1
 
 direction = [[0, -1], [-1, 0], [0, 1], [1, 0]]
 # 구역의 부모리스트 자기 자신으로 설정
-island = [i for i in range(num_island+1)]
+parent = [i for i in range(num_island+ 1)]
 
 
 bridge = []     # 연결할 수 있는 다리의 정보(다리의 길이, 시작구역 번호, 도착구역 번호)
@@ -98,9 +99,9 @@ bridge.sort()   # 다리길이가 짧은 순서로 정렬
 result = 0
 for len, start, end in bridge:
     # 각 구역의 부모가 다르면
-    if find_parent(start) != find_parent(end):
+    if find_parent(parent, start) != find_parent(parent, end):
         result += len
-        union_parent(start, end)
+        union_parent(parent, start, end)
 
 # 모든 구역의 부모가 같은지 확인
 if check_all_connected():
